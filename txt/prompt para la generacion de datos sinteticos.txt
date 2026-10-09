@@ -1,0 +1,32 @@
+Actúa como un especialista en bases de datos relacionales (SQL), ingeniería de datos y curación de datasets para fine-tuning de modelos de lenguaje (Proyecto Titin).
+
+Tu tarea es generar exactamente 15 registros sintéticos adicionales para expandir un corpus de entrenamiento mediante bootstrapping. Cada registro evalúa una consulta SQL frente a un esquema de base de datos relacional y un requerimiento en lenguaje natural.
+
+### ENTRADA (DATOS SEMILLA EN FORMATO JSONL):
+Toma como estándar de estructura, formato y estilo pedagógico las siguientes líneas semilla en formato JSONL:
+
+<SEEDS_JSONL>
+{"entrada": {"consulta_lenguaje_natural": "Listar las ciudades de destino de los viajes comprados por el cliente Juan", "consulta_sql_a_evaluar": "SELECT destino FROM cliente WHERE nombre = 'Juan'", "esquema_bd": "CREATE TABLE cliente (id INT PRIMARY KEY, nombre VARCHAR(100)); CREATE TABLE viaje (id INT PRIMARY KEY, destino VARCHAR(100)); CREATE TABLE ticket (id INT PRIMARY KEY, refcliente INT, refviaje INT, FOREIGN KEY (refcliente) REFERENCES cliente(id), FOREIGN KEY (refviaje) REFERENCES viaje(id));", "consulta_sql_correcta": "SELECT DISTINCT v.destino FROM cliente c JOIN ticket t ON c.id = t.refcliente JOIN viaje v ON t.refviaje = v.id WHERE c.nombre = 'Juan'", "resultado_consulta_correcta": [{"destino": "Santiago"}, {"destino": "Valparaíso"}]}, "salida": {"validacion": "Incorrecta", "tipo_de_error": ["Conceptual"], "feedback": "La consulta presenta un error conceptual. Intenta seleccionar el campo 'destino' directamente desde la tabla 'cliente', omitiendo las relaciones necesarias mediante JOIN con las tablas ticket y viaje donde reside lógicamente esa información."}}
+{"entrada": {"consulta_lenguaje_natural": "Mostrar el nombre y apellido de todos los empleados activos", "consulta_sql_a_evaluar": "SELET nombre, apellido FROM empleado WHERE estado = 'activo'", "esquema_bd": "CREATE TABLE empleado (id_empleado INT PRIMARY KEY, nombre VARCHAR(50), apellido VARCHAR(50), estado VARCHAR(20));", "consulta_sql_correcta": "SELECT nombre, apellido FROM empleado WHERE estado = 'activo'", "resultado_consulta_correcta": [{"nombre": "Ana", "apellido": "Pérez"}, {"nombre": "Carlos", "apellido": "Gómez"}]}, "salida": {"validacion": "Incorrecta", "tipo_de_error": ["Sintáctico"], "feedback": "La consulta presenta un error de sintaxis en la instrucción principal. La palabra clave 'SELET' está mal escrita; debe corregirse por 'SELECT' para que el motor de base de datos pueda procesar la petición."}}
+{"entrada": {"consulta_lenguaje_natural": "Obtener el total de ingresos generados por el producto 'Teclado Mecánico'", "consulta_sql_a_evaluar": "SELECT SUM(precio) FROM ventas WHERE nombre_producto = 'Teclado Mecánico'", "esquema_bd": "CREATE TABLE producto (id_producto INT PRIMARY KEY, nombre VARCHAR(100)); CREATE TABLE ventas (id_venta INT PRIMARY KEY, id_producto INT, total_venta DECIMAL(10,2), FOREIGN KEY (id_producto) REFERENCES producto(id_producto));", "consulta_sql_correcta": "SELECT SUM(v.total_venta) FROM ventas v JOIN producto p ON v.id_producto = p.id_producto WHERE p.nombre = 'Teclado Mecánico'", "resultado_consulta_correcta": [{"SUM(v.total_venta)": 150000.00}]}, "salida": {"validacion": "Incorrecta", "tipo_de_error": ["Semántico"], "feedback": "La consulta contiene errores semánticos. Las columnas 'precio' y 'nombre_producto' no existen en la tabla 'ventas'. Es necesario realizar un JOIN con la tabla 'producto' para poder filtrar por el nombre del producto, y utilizar la columna 'total_venta' de la tabla 'ventas' para realizar la suma."}}
+</SEEDS_JSONL>
+
+### DISTRIBUCIÓN REQUERIDA (15 EJEMPLOS TOTALES):
+Debes generar una distribución equilibrada:
+1. Consultas Correctas (3 ejemplos): validacion: "Correcta", tipo_de_error: [], feedback validando que la consulta cumple el requerimiento eficientemente.
+2. Errores Sintácticos (4 ejemplos): validacion: "Incorrecta", tipo_de_error: ["Sintáctico"] (errores gramaticales SQL: palabras clave rotas, mal uso de comas, paréntesis sin cerrar, cláusulas fuera de orden).
+3. Errores Semánticos (4 ejemplos): validacion: "Incorrecta", tipo_de_error: ["Semántico"] (columnas o tablas inexistentes en el esquema_bd, tipos de datos incompatibles o referencias ambiguas).
+4. Errores Conceptuales / Lógicos (4 ejemplos): validacion: "Incorrecta", tipo_de_error: ["Conceptual"] (JOINs omitidos, condiciones WHERE erróneas que alteran el resultado lógico, uso indebido de GROUP BY o agregaciones lógicamente incorrectas).
+
+### REGLAS DE CALIDAD TÉCNICA:
+- Esquema DDL riguroso: El campo "esquema_bd" debe definir tablas y llaves foráneas válidas. Todo error semántico debe ser contrastable de forma directa con el DDL provisto.
+- Variedad de dominios: Usa esquemas variados (comercio electrónico, hospitales, streaming, logística, universidades, bancos, etc.).
+- Diagnóstico constructivo: El feedback debe explicar con claridad la causa raíz técnica del error y cómo resolverlo pedagógicamente.
+
+### REGLAS ESTRICTAS DE FORMATO (JSONL):
+- Cada línea de la respuesta debe ser EXACTAMENTE un objeto JSON completo, válido y autónomo en una sola línea continua.
+- NO uses un array contenedor `[...]`.
+- NO agregues comas `,` al final de cada línea.
+- NO incluyas saltos de línea ni indentaciones dentro de los objetos JSON.
+- La respuesta debe tener exactamente 15 líneas de texto, correspondientes a los 15 objetos JSONL.
+- Devuelve exclusivamente el bloque de código con las 15 líneas, sin texto introductorio ni explicaciones adicionales.

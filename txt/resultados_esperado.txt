@@ -1,0 +1,5 @@
+Caso 1 (Sintáctico): Palabra clave WHER con error tipográfico en una tabla médica.
+
+Caso 2 (Semántico): Intento de acceder a la columna fecha cuando el DDL define fecha_pedido.
+
+Caso 3 (Conceptual): Omisión del JOIN con la tabla intermedia inscripciones, lo que genera un producto cartesiano erróneo.
